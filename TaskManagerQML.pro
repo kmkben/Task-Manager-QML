@@ -5,7 +5,8 @@ SOURCES += \
 
 resources.files = main.qml 
 resources.prefix = /$${TARGET}
-RESOURCES += resources
+RESOURCES += resources \
+    ressources.qrc
 
 TRANSLATIONS += \
     TaskManagerQML_ar_SA.ts
