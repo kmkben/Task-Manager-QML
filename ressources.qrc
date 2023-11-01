@@ -2,11 +2,8 @@
     <qresource prefix="/images">
         <file>delete.png</file>
     </qresource>
-<<<<<<< HEAD
-=======
     <qresource prefix="/">
         <file>database.js</file>
     </qresource>
     <qresource prefix="/js"/>
->>>>>>> 87a8c93a0296c38a21cf0083781c4546ec425c72
 </RCC>

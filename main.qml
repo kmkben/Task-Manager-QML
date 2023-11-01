@@ -6,37 +6,55 @@ import "qrc:/database.js" as DB
 
 Window {
     width: 440
-    height: 680
+    height: 700
     visible: true
     title: qsTr("Task Manager")
 
+
     Item {
         Component.onCompleted: {
-//            const db = LocalStorage.openDatabaseSync("TaskManagerDB", "1.0", "Databse to store task in Task Manager", 1000000)
-
-//            db.transaction(function(tx){
-//                    tx.executeSql('CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY AUTOINCREMENT, pseudo TEXT, password TEXT);');
-//                    tx.executeSql('CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, task TEXT, deadline DATE, completed INTEGER);');
-//                    console.log("Tables created ...");
-//            });
 
             DB.initDB();
+
+            var tasks = DB.getTasks();
+
+            for (var i = 0; i < tasks.length; i++) {
+                taskModel.append({id: tasks[i].id, task: tasks[i].task, deadline: tasks[i].deadline, completed: tasks[i].completed === 0 ? false : true});
+            }
         }
     }
 
     ListView {
+        id: listView
         width: parent.width
-        height: parent.height
+        height: parent.height - 180
+        clip: true
 
         model: ListModel {
             id: taskModel
+
+            Component.onObjectNameChanged: {
+                var tasks = DB.getTasks();
+
+                for (var i = 0; i < tasks.length; i++) {
+                    taskModel.append({id: tasks[i].id, task: tasks[i].task, deadline: tasks[i].deadline, completed: tasks[i].completed === 0 ? false : true});
+                }
+            }
+
         }
 
-        Component.onCompleted: {
-            tasks = DB.getTasks();
+        ScrollBar.vertical: ScrollBar {
+            id: verticalScrollBar
+            active: pressed || listView.moving
+            orientation: Qt.Vertical
+            opacity: active ? 1:0
+            Behavior on opacity {NumberAnimation {duration: 500}}
 
-            for (var i = 0; i < tasks.length; i++) {
-                model.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tascks[i].completed === 0 ? false : true});
+            contentItem: Rectangle {
+                implicitWidth: 4
+                radius:2
+                implicitHeight: parent.height
+                color: "#ff303030"
             }
         }
 
@@ -44,6 +62,7 @@ Window {
             id: delegateTaskList
             width: parent.width
             height: 60
+            anchors.bottomMargin: 30
 
             Rectangle {
                 id: taskRect
@@ -53,35 +72,33 @@ Window {
 
                 property bool isCompleted: model.completed
 
-                Row {
-                    width: parent.width - 40
-                    anchors.verticalCenter: taskRect.verticalCenter
+                Text {
+                    id: textTask
+                    width: (80 * parent.width / 100)
+                    text: qsTr(model.task)
+                    font.bold: true
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    wrapMode: Text.WordWrap
+                    padding: 10
+                }
 
-                    Text {
-                        id: textTask
-                        width: (80 * parent.width / 100)
-                        text: qsTr(model.task)
-                        font.bold: true
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        wrapMode: Text.WordWrap
-                        padding: 10
-                    }
-
-                    Text {
-                        id: textDeadline
-                        text: qsTr(model.deadline)
-                        font.bold: true
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                Text {
+                    id: textDeadline
+                    text: qsTr(model.deadline)
+                    font.bold: true
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.rightMargin: 40
                 }
 
                 MouseArea {
                     id: mouseArea
                     anchors.fill: parent
                     onClicked: {
+                        var id = model.id
                         model.completed = !taskRect.isCompleted;
+                        DB.changeTaskProgress(id);
                     }
                 }
 
@@ -98,18 +115,50 @@ Window {
                         id: mouseAreaDeleteImg
                         anchors.fill: parent
                         onClicked: {
+                            var id = taskModel.get(index).id;
                             taskModel.remove(index);
+                            DB.removeTask(id);
                         }
                     }
                 }
             }
         }
+
+        footerPositioning: ListView.PullBackFooter
+        footer: Rectangle {
+            id: listFooter
+            width: parent.width - 200
+            height: 60
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: "orange"
+
+            Text {
+                id: listFooterText
+                text: qsTr("Clear All")
+                anchors.centerIn: parent
+                font.bold: true
+                font.pointSize: 18
+                color: "red"
+            }
+
+            MouseArea {
+                id: mouseAreaClearAllTasks
+                anchors.fill: parent
+
+                onClicked: {
+                    console.log("All tasks clecked");
+                }
+            }
+
+
+        }
+
     }
 
     Rectangle {
         id: rectInputFields
         width: parent.width
-        height: 160
+        height: 190
         anchors.bottom: parent.bottom
 
         TextField {
@@ -118,6 +167,7 @@ Window {
             height: 40
             anchors.top: parent.top
             anchors.left: parent.left
+            anchors.topMargin: 10
             anchors.bottomMargin: 10
             anchors.leftMargin: 10
             placeholderText: qsTr("Enter a task")
@@ -133,18 +183,18 @@ Window {
                     var completed = 0;
                     DB.addTask(task, deadline, completed);
 
-                    //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-
-                    var tasks = DB.getTasks();
-
-                    for (var i = 0; i < tasks.length; i++) {
-                        taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tascks[i].completed === 0 ? false : true});
-                    }
-
 
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
+
+//                    var tasks = DB.getTasks();
+
+//                    for (var i = 0; i < tasks.length; i++) {
+//                        taskModel.append({id: tasks[i].id, task: tasks[i].task, deadline: tasks[i].deadline, completed: tasks[i].completed === 0 ? false : true});
+//                    }
+
+
                 }
             }
         }
@@ -171,17 +221,20 @@ Window {
                     var completed = 0;
                     DB.addTask(task, deadline, completed);
 
-                    //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-
-                    var tasks = DB.getTasks();
-
-                    for (var i = 0; i < tasks.length; i++) {
-                        taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tasks[i].completed === 0 ? false : true});
-                    }
-
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
+
+                    taskModel.sort(function(item1, item2) {
+                            return new Date(item1.deadline) - new Date(item2.deadline);
+                        });
+
+//                    var tasks = DB.getTasks();
+
+//                    for (var i = 0; i < tasks.length; i++) {
+//                        taskModel.append({id: tasks[i].id, task: tasks[i].task, deadline: tasks[i].deadline, completed: tasks[i].completed === 0 ? false : true});
+//                    }
+
                 }
             }
         }
@@ -218,17 +271,16 @@ Window {
                         var completed = 0;
                         DB.addTask(task, deadline, completed);
 
-                        //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-
-                        var tasks = DB.getTasks();
-
-                        for (var i = 0; i < tasks.length; i++) {
-                            taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tasks[i].completed === 0 ? false : true});
-                        }
-
                         taskInput.text = "";
                         deadlineInput.text = "";
                         taskInput.focus = true;
+
+//                        var tasks = DB.getTasks();
+
+//                        for (var i = 0; i < tasks.length; i++) {
+//                            taskModel.append({id: tasks[i].id, task: tasks[i].task, deadline: tasks[i].deadline, completed: tasks[i].completed === 0 ? false : true});
+//                        }
+
                     }
                 }
             }
