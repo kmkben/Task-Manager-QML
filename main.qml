@@ -124,9 +124,9 @@ Window {
 
             onAccepted: {
                 if (taskInput.text !== "" && deadlineInput.text !== "") {
-<<<<<<< HEAD
+
                     taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-=======
+
                     // Add database
                     var task = taskInput.text;
                     var deadline = deadlineInput.text;
@@ -141,7 +141,7 @@ Window {
                         taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tascks[i].completed === 0 ? false : true});
                     }
 
->>>>>>> 87a8c93a0296c38a21cf0083781c4546ec425c72
+
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
@@ -162,9 +162,9 @@ Window {
 
             onAccepted: {
                 if (taskInput.text !== "" && deadlineInput.text !== "") {
-<<<<<<< HEAD
+
                     taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-=======
+
                     // Add task to database
                     var task = taskInput.text;
                     var deadline = deadlineInput.text;
@@ -179,7 +179,6 @@ Window {
                         taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tasks[i].completed === 0 ? false : true});
                     }
 
->>>>>>> 87a8c93a0296c38a21cf0083781c4546ec425c72
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
@@ -209,12 +208,10 @@ Window {
                 anchors.fill: parent
 
                 onClicked: {
-<<<<<<< HEAD
                     if (taskInput.text !== "" && deadlineInput.text !== "") {
-                        taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
-=======
 
-                    if (taskInput.text !== "" && deadlineInput.text !== "") {
+                        taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+
                         // Add task to database
                         var task = taskInput.text;
                         var deadline = deadlineInput.text;
@@ -222,7 +219,13 @@ Window {
                         DB.addTask(task, deadline, completed);
 
                         //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
->>>>>>> 87a8c93a0296c38a21cf0083781c4546ec425c72
+
+                        var tasks = DB.getTasks();
+
+                        for (var i = 0; i < tasks.length; i++) {
+                            taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tasks[i].completed === 0 ? false : true});
+                        }
+
                         taskInput.text = "";
                         deadlineInput.text = "";
                         taskInput.focus = true;
