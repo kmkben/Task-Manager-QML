@@ -1,11 +1,28 @@
 import QtQuick
 import QtQuick.Controls 2.15
+import QtQuick.LocalStorage 2.0
+
+import "qrc:/database.js" as DB
 
 Window {
     width: 440
     height: 680
     visible: true
-    title: qsTr("Hello World")
+    title: qsTr("Task Manager")
+
+    Item {
+        Component.onCompleted: {
+//            const db = LocalStorage.openDatabaseSync("TaskManagerDB", "1.0", "Databse to store task in Task Manager", 1000000)
+
+//            db.transaction(function(tx){
+//                    tx.executeSql('CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY AUTOINCREMENT, pseudo TEXT, password TEXT);');
+//                    tx.executeSql('CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, task TEXT, deadline DATE, completed INTEGER);');
+//                    console.log("Tables created ...");
+//            });
+
+            DB.initDB();
+        }
+    }
 
     ListView {
         width: parent.width
@@ -13,6 +30,14 @@ Window {
 
         model: ListModel {
             id: taskModel
+        }
+
+        Component.onCompleted: {
+            tasks = DB.getTasks();
+
+            for (var i = 0; i < tasks.length; i++) {
+                model.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tascks[i].completed === 0 ? false : true});
+            }
         }
 
         delegate: Item {
@@ -99,7 +124,20 @@ Window {
 
             onAccepted: {
                 if (taskInput.text !== "" && deadlineInput.text !== "") {
-                    taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+                    // Add database
+                    var task = taskInput.text;
+                    var deadline = deadlineInput.text;
+                    var completed = 0;
+                    DB.addTask(task, deadline, completed);
+
+                    //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+
+                    var tasks = DB.getTasks();
+
+                    for (var i = 0; i < tasks.length; i++) {
+                        taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tascks[i].completed === 0 ? false : true});
+                    }
+
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
@@ -120,7 +158,20 @@ Window {
 
             onAccepted: {
                 if (taskInput.text !== "" && deadlineInput.text !== "") {
-                    taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+                    // Add task to database
+                    var task = taskInput.text;
+                    var deadline = deadlineInput.text;
+                    var completed = 0;
+                    DB.addTask(task, deadline, completed);
+
+                    //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+
+                    var tasks = DB.getTasks();
+
+                    for (var i = 0; i < tasks.length; i++) {
+                        taskModel.append({"id": tasks[i].id, "task": tasks[i].task, "deadline": tasks[i].deadline, "completed": tasks[i].completed === 0 ? false : true});
+                    }
+
                     taskInput.text = "";
                     deadlineInput.text = "";
                     taskInput.focus = true;
@@ -150,8 +201,15 @@ Window {
                 anchors.fill: parent
 
                 onClicked: {
+
                     if (taskInput.text !== "" && deadlineInput.text !== "") {
-                        taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
+                        // Add task to database
+                        var task = taskInput.text;
+                        var deadline = deadlineInput.text;
+                        var completed = 0;
+                        DB.addTask(task, deadline, completed);
+
+                        //taskModel.append({ "task": taskInput.text, "deadline": deadlineInput.text, "completed": false });
                         taskInput.text = "";
                         deadlineInput.text = "";
                         taskInput.focus = true;
