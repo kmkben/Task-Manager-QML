@@ -37,7 +37,5 @@ function getTasks() {
             var row = resultSet.rows.item(i);
             tasks.push({ id: row.id, task: row.task, deadline: row.deadline, completed: row.completed });
         }
-    });
-
-    return tasks;
+    })
 }
